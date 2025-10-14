@@ -4,13 +4,12 @@ import json
 import time
 import requests
 import websocket
-from keep_alive import keep_alive
 
 status = "online" #online/dnd/idle
 
-GUILD_ID = ADD_YOUR_SERVER_ID_HERE
-CHANNEL_ID = ADD_YOUR_CHANNEL_ID_HERE
-SELF_MUTE = True
+GUILD_ID = 961795359544328203
+CHANNEL_ID = 1140135558467813417
+SELF_MUTE = False
 SELF_DEAF = False
 
 usertoken = os.getenv("TOKEN")
@@ -49,5 +48,4 @@ def run_joiner():
     joiner(usertoken, status)
     time.sleep(30)
 
-keep_alive()
 run_joiner()
