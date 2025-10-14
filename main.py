@@ -4,6 +4,7 @@ import json
 import time
 import requests
 import websocket
+from keep_alive import keep_alive 
 
 status = "dnd" #online/dnd/idle
 
@@ -48,4 +49,5 @@ def run_joiner():
     joiner(usertoken, status)
     time.sleep(30)
 
+keep_alive() 
 run_joiner()
