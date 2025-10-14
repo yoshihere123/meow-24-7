@@ -5,7 +5,7 @@ import time
 import requests
 import websocket
 
-status = "online" #online/dnd/idle
+status = "dnd" #online/dnd/idle
 
 GUILD_ID = 961795359544328203
 CHANNEL_ID = 1140135558467813417
