@@ -8,7 +8,7 @@ import websocket
 status = "dnd" #online/dnd/idle
 
 GUILD_ID = 961795359544328203
-CHANNEL_ID = 1140135558467813417
+CHANNEL_ID = 1311980182646558742
 SELF_MUTE = False
 SELF_DEAF = False
 
