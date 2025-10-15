@@ -9,8 +9,8 @@ from keep_alive import keep_alive  # لو تستخدم استضافة مثل Rep
 
 # ------ إعدادات ------
 status = "dnd"  # online / idle / dnd
-GUILD_ID = "859063643006173214"
-LOBBY_CHANNEL_ID = "882218490570891264"
+GUILD_ID = "961795359544328203"
+LOBBY_CHANNEL_ID = "1311980182646558742"
 SELF_MUTE = False
 SELF_DEAF = False
 
