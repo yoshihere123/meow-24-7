@@ -1,23 +1,15 @@
-# محتوى ملف keep_alive.py
+# محتوى ملف keep_alive.py (النهائي والمبسط)
 
 from flask import Flask
-from threading import Thread
-import os
+
+# لا نحتاج لاستيراد threading أو os بعد الآن
 
 app = Flask('')
 
 @app.route('/')
 def home():
-    # هذا المسار يستخدمه Render لفحص حالة الخدمة (Health Check)
+    # هذا المسار يستخدمه Gunicorn/Render لفحص حالة الخدمة (Health Check)
     return "Bot is alive!"
 
-def run():
-    # استخدام المنفذ الذي يحدده Render (عادة 8080)
-    port = int(os.environ.get('PORT', 8080))
-    # تشغيل الخادم على جميع العناوين
-    app.run(host='0.0.0.0', port=port)
-
-def keep_alive():
-    # تشغيل خادم Flask في خيط منفصل (Background thread)
-    t = Thread(target=run)
-    t.start()
+# تم حذف دالتي run() و keep_alive() بالكامل
+# لأن Gunicorn سيتولى تشغيل تطبيق Flask مباشرة (عبر أمر البدء)
