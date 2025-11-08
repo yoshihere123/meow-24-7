@@ -7,11 +7,31 @@ import websocket
 import random
 from keep_alive import keep_alive 
 
-# --- المتغيرات الثابتة (للتذكير) ---
+# --- المتغيرات الثابتة ---
 GUILD_ID = 961795359544328203
 CHANNEL_ID = 1428594267189678080
 
-# (يجب أن تكون متغيرات usertoken, username, discriminator, userid معرفة ومحقق منها مسبقاً)
+# --- 1. جلب التوكن والتحقق منه وتعريف متغيرات المستخدم ---
+# هذا الجزء تم إضافته لتعريف usertoken, username, discriminator, userid
+
+usertoken = os.getenv("TOKEN")
+if not usertoken:
+    print("[ERROR] Please add a token inside Secrets.")
+    sys.exit()
+
+headers = {"Authorization": usertoken, "Content-Type": "application/json"}
+
+# التحقق من صلاحية التوكن
+validate = requests.get('https://canary.discordapp.com/api/v9/users/@me', headers=headers)
+if validate.status_code != 200:
+    print("[ERROR] Your token might be invalid. Please check it again.")
+    sys.exit()
+
+# جلب معلومات المستخدم وتعريف المتغيرات المطلوبة في run_joiner
+userinfo = requests.get('https://canary.discordapp.com/api/v9/users/@me', headers=headers).json()
+username = userinfo["username"]
+discriminator = userinfo["discriminator"]
+userid = userinfo["id"]
 
 # --- دالة البقاء والتحديث المستمر ---
 def maintain_session(token):
