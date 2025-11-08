@@ -143,5 +143,5 @@ def run_joiner():
             print(f"[FATAL ERROR] The main session crashed entirely: {e}. Waiting 60s and re-launching...", flush=True) 
             time.sleep(60)
 
-keep_alive()
+# تم حذف استدعاء keep_alive() لتجنب تعارض المنافذ مع Gunicorn.
 run_joiner()
