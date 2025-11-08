@@ -32,7 +32,6 @@ discriminator = userinfo["discriminator"]
 userid = userinfo["id"]
 
 # --- المتغيرات العامة (العدادات المحفوظة) ---
-# الفترة العشوائية المطلوبة: بين 5 دقائق (300 ثانية) و 15 دقيقة (900 ثانية)
 STATUS_UPDATE_INTERVAL = random.randint(300, 900) 
 last_update_time = time.time()
 # ----------------------------------------------------
@@ -40,16 +39,17 @@ last_update_time = time.time()
 # --- دالة البقاء والتحديث المستمر ---
 def maintain_session(token):
     
-    # الإعلان عن المتغيرات كعامة لحفظ المؤقت
     global STATUS_UPDATE_INTERVAL, last_update_time 
     
     statuses = ["online", "dnd", "idle"]
-    boolean_choices = [True, False] # لكتم/فتح المايك والسماعة
+    boolean_choices = [True, False] 
     
     while True:
         # 1. إنشاء اتصال WebSocket جديد
         ws = websocket.WebSocket()
         try:
+            # يجب تعيين مهلة الاستقبال (recv_timeout) للتحقق من الاتصال
+            ws.settimeout(10) # مهلة 10 ثواني لاستقبال الرسائل
             ws.connect('wss://gateway.discord.gg/?v=9&encoding=json')
         except Exception as e:
             print(f"[ERROR] Failed to connect WebSocket: {e}. Retrying in 10s...", flush=True) 
@@ -94,40 +94,43 @@ def maintain_session(token):
                 # 6.2. التحقق من وقت التحديث العشوائي
                 if time.time() - last_update_time >= STATUS_UPDATE_INTERVAL:
                     
-                    # اختيار حالات جديدة عشوائياً
                     current_status = random.choice(statuses)
                     current_mute = random.choice(boolean_choices)
                     current_deaf = random.choice(boolean_choices)
                     
                     print(f"[UPDATE] Changing state. New Status: {current_status} | Mute: {current_mute} | Deaf: {current_deaf}", flush=True) 
 
-                    # إرسال Voice State Update لتحديث المايك والسماعة
                     vc_update = {
                         "op": 4, "d": {"guild_id": GUILD_ID, "channel_id": CHANNEL_ID, 
                                        "self_mute": current_mute, "self_deaf": current_deaf}}
                     ws.send(json.dumps(vc_update))
                     
-                    # إرسال تحديث الحضور لتغيير الحالة الشخصية
                     presence_update = {
                         "op": 3, "d": {"status": current_status, "afk": False, "activities": []}}
                     ws.send(json.dumps(presence_update))
 
-                    # إعادة تعيين مؤقت التحديث وفترة الانتظار العشوائية الجديدة (بين 5 و 15 دقيقة)
                     last_update_time = time.time()
                     STATUS_UPDATE_INTERVAL = random.randint(300, 900) 
                     print(f"Next random update scheduled in {STATUS_UPDATE_INTERVAL} seconds.", flush=True) 
 
-                # 6.3. الانتظار حتى الموعد التالي لـ Heartbeat
+                # 6.3. محاولة استقبال رسائل (لتجنب تراكمها وتجنب الخطأ)
+                try:
+                    # استقبال رسالة وإذا لم تكن هناك رسالة ينتقل إلى exception
+                    ws.recv() 
+                except websocket.timeout:
+                    # هذا هو السلوك الطبيعي إذا لم تكن هناك رسالة، ننتقل للخطوة التالية
+                    pass
+                except Exception as e:
+                    # التقاط أي خطأ آخر في الاستقبال
+                    print(f"[ERROR] Recv error: {e}", flush=True) 
+
+                # 6.4. الانتظار حتى الموعد التالي لـ Heartbeat
                 time.sleep(heartbeat_interval_s)
-                
-                # 6.4. محاولة استقبال رسائل (لتجنب تراكمها)
-                ws.recv_ex() 
                 
             except websocket.WebSocketConnectionClosedException:
                 print("\n[INFO] WebSocket connection closed by server. Attempting immediate reconnect...", flush=True) 
                 break 
             except Exception as e:
-                # التقاط أي خطأ داخل حلقة الاتصال والبدء من جديد
                 print(f"\n[ERROR] Inner connection loop failed: {e}. Retrying connection...", flush=True) 
                 break 
 
@@ -136,12 +139,10 @@ def run_joiner():
     os.system("clear")
     print(f"Logged in as {username}#{discriminator} ({userid}).", flush=True) 
     
-    # الحماية القصوى: تضمن أن البرنامج لا ينتهي أبدًا 
     while True:
         try:
             maintain_session(usertoken)
         except Exception as e:
-            # يتم التقاط أي خطأ يهرب من maintain_session
             print(f"[FATAL ERROR] The main session crashed entirely: {e}. Waiting 60s and re-launching...", flush=True) 
             time.sleep(60)
 
