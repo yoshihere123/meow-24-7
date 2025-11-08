@@ -1,5 +1,3 @@
-import sys
-sys.modules['audioop'] = None
 import discord
 import os
 import time
