@@ -12,8 +12,6 @@ GUILD_ID = 961795359544328203
 CHANNEL_ID = 1428594267189678080
 
 # --- 1. جلب التوكن والتحقق منه وتعريف متغيرات المستخدم ---
-# هذا الجزء تم إضافته لتعريف usertoken, username, discriminator, userid
-
 usertoken = os.getenv("TOKEN")
 if not usertoken:
     print("[ERROR] Please add a token inside Secrets.")
@@ -39,20 +37,21 @@ def maintain_session(token):
     statuses = ["online", "dnd", "idle"]
     boolean_choices = [True, False] # لكتم/فتح المايك والسماعة
     
-    # تحديد فترة زمنية عشوائية لإرسال تحديثات الحالة
-    # التحديث العشوائي للحالة يتم بين 5 إلى 15 دقيقة
-    STATUS_UPDATE_INTERVAL = random.randint(300, 900) 
+    # *** الإصلاح هنا: نقل التعريفات خارج حلقة while True ***
+    # التحديث العشوائي للحالة يتم بين 10 إلى 15 دقيقة (600-900 ثانية)
+    STATUS_UPDATE_INTERVAL = random.randint(600, 900) 
     last_update_time = time.time()
+    # *******************************************************
     
     while True:
-        # 1. إنشاء اتصال WebSocket جديد في كل تكرار للحلقة الخارجية (في حالة انقطع الاتصال)
+        # 1. إنشاء اتصال WebSocket جديد
         ws = websocket.WebSocket()
         try:
             ws.connect('wss://gateway.discord.gg/?v=9&encoding=json')
         except Exception as e:
             print(f"[ERROR] Failed to connect WebSocket: {e}. Retrying in 10s...")
             time.sleep(10)
-            continue # حاول الاتصال مرة أخرى
+            continue
 
         # 2. استقبال رسالة Hello وحساب Heartbeat
         try:
@@ -91,6 +90,7 @@ def maintain_session(token):
                 
                 # 6.2. التحقق من وقت التحديث العشوائي
                 if time.time() - last_update_time >= STATUS_UPDATE_INTERVAL:
+                    
                     # اختيار حالات جديدة عشوائياً
                     current_status = random.choice(statuses)
                     current_mute = random.choice(boolean_choices)
@@ -110,8 +110,9 @@ def maintain_session(token):
                     ws.send(json.dumps(presence_update))
 
                     # إعادة تعيين مؤقت التحديث وفترة الانتظار العشوائية الجديدة
+                    # يتم التعيين هنا فقط، مما يمنع التصفير عند إعادة الاتصال
                     last_update_time = time.time()
-                    STATUS_UPDATE_INTERVAL = random.randint(300, 900) 
+                    STATUS_UPDATE_INTERVAL = random.randint(600, 900) 
                     print(f"Next random update scheduled in {STATUS_UPDATE_INTERVAL} seconds.")
 
                 # 6.3. الانتظار حتى الموعد التالي لـ Heartbeat
@@ -122,10 +123,10 @@ def maintain_session(token):
                 
             except websocket.WebSocketConnectionClosedException:
                 print("\n[INFO] WebSocket connection closed by server. Attempting immediate reconnect...")
-                break # الخروج من حلقة Heartbeat الداخلية للبدء من جديد
+                break # الخروج وإعادة التشغيل
             except Exception as e:
                 print(f"\n[ERROR] An error occurred: {e}. Attempting immediate reconnect...")
-                break # الخروج والبدء من جديد
+                break # الخروج وإعادة التشغيل
 
 # --- حلقة التشغيل الرئيسية ---
 def run_joiner():
