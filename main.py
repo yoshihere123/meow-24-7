@@ -111,11 +111,11 @@ def maintain_session(token):
                     STATUS_UPDATE_INTERVAL = random.randint(300, 900) 
                     print(f"Next random update scheduled in {STATUS_UPDATE_INTERVAL} seconds.", flush=True) 
                 
-                # 6.3. *** تم حذف محاولة ws.recv() هنا ***
+                # 6.3. تم إزالة محاولة ws.recv() هنا
 
-                # 6.4. الانتظار حتى الموعد التالي لـ Heartbeat (بصيغة محسنة)
-                time.sleep(1) # انتظار ثانية واحدة بعد Heartbeat
-                time.sleep(heartbeat_interval_s - 1) # الانتظار المتبقي
+                # 6.4. الانتظار حتى الموعد التالي لـ Heartbeat (الانتظار الكامل)
+                # هذا هو التعديل الأخير للثبات
+                time.sleep(heartbeat_interval_s) 
                 
             except websocket.WebSocketConnectionClosedException:
                 print("\n[INFO] WebSocket connection closed by server. Attempting immediate reconnect...", flush=True) 
