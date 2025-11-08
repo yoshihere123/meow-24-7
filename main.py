@@ -5,8 +5,6 @@ import time
 import requests
 import websocket
 import random
-# from keep_alive import keep_alive  <== تم حذف هذا السطر لتجنب خطأ الاستيراد (ImportError)
-
 # --- المتغيرات الثابتة ---
 GUILD_ID = 961795359544328203
 CHANNEL_ID = 1428594267189678080
@@ -112,22 +110,18 @@ def maintain_session(token):
                     last_update_time = time.time()
                     STATUS_UPDATE_INTERVAL = random.randint(300, 900) 
                     print(f"Next random update scheduled in {STATUS_UPDATE_INTERVAL} seconds.", flush=True) 
+                
+                # 6.3. *** تم حذف محاولة ws.recv() هنا ***
 
-                # 6.3. محاولة استقبال رسائل (لحل مشكلة recv_ex)
-                try:
-                    ws.recv() 
-                except websocket.timeout:
-                    pass
-                except Exception as e:
-                    print(f"[ERROR] Recv error: {e}", flush=True) 
-
-                # 6.4. الانتظار حتى الموعد التالي لـ Heartbeat
-                time.sleep(heartbeat_interval_s)
+                # 6.4. الانتظار حتى الموعد التالي لـ Heartbeat (بصيغة محسنة)
+                time.sleep(1) # انتظار ثانية واحدة بعد Heartbeat
+                time.sleep(heartbeat_interval_s - 1) # الانتظار المتبقي
                 
             except websocket.WebSocketConnectionClosedException:
                 print("\n[INFO] WebSocket connection closed by server. Attempting immediate reconnect...", flush=True) 
                 break 
             except Exception as e:
+                # هذا يلتقط خطأ [Errno 32] Broken pipe ويحاول إعادة الاتصال
                 print(f"\n[ERROR] Inner connection loop failed: {e}. Retrying connection...", flush=True) 
                 break 
 
