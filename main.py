@@ -30,7 +30,7 @@ async def on_ready():
         print(f"Attempting to join voice channel: {channel.name}")
         try:
             # محاولة الاتصال بالقناة الصوتية
-            await channel.connect(self_mute=False, self_deaf=False)
+            await channel.connect(self_mute=True, self_deaf=False)
             print("Successfully connected to voice channel.")
         except Exception as e:
             print(f"Error connecting to voice channel: {e}")
