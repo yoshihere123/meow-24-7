@@ -31,16 +31,16 @@ username = userinfo["username"]
 discriminator = userinfo["discriminator"]
 userid = userinfo["id"]
 
-# --- 🌟🌟🌟 المتغيرات العامة (مع تصحيح الفترة الزمنية) 🌟🌟🌟 ---
+# --- 🌟 المتغيرات العامة (العدادات المحفوظة) 🌟 ---
 # الفترة العشوائية المطلوبة: بين 5 دقائق (300 ثانية) و 15 دقيقة (900 ثانية)
 STATUS_UPDATE_INTERVAL = random.randint(300, 900) 
 last_update_time = time.time()
-# -----------------------------------------------------------------
+# ----------------------------------------------------
 
 # --- دالة البقاء والتحديث المستمر ---
 def maintain_session(token):
     
-    # 🔑 يجب الإعلان عن المتغيرات كعامة لاستخدام قيمها المحفوظة وتعديلها 🔑
+    # 🔑 الإعلان عن المتغيرات كعامة لحفظ المؤقت 🔑
     global STATUS_UPDATE_INTERVAL, last_update_time 
     
     statuses = ["online", "dnd", "idle"]
@@ -70,7 +70,6 @@ def maintain_session(token):
         current_mute = random.choice(boolean_choices)
         current_deaf = random.choice(boolean_choices)
         
-        # يتم استخدام STATUS_UPDATE_INTERVAL المحفوظة
         print(f"\n--- New Session Started (Interval: {STATUS_UPDATE_INTERVAL}s) ---")
         print(f"Initial Status: {current_status} | Mute: {current_mute} | Deaf: {current_deaf}")
 
@@ -128,14 +127,23 @@ def maintain_session(token):
                 print("\n[INFO] WebSocket connection closed by server. Attempting immediate reconnect...")
                 break 
             except Exception as e:
-                print(f"\n[ERROR] An error occurred: {e}. Attempting immediate reconnect...")
+                # التقاط أي خطأ داخل حلقة الاتصال والبدء من جديد
+                print(f"\n[ERROR] Inner connection loop failed: {e}. Retrying connection...")
                 break 
 
-# --- حلقة التشغيل الرئيسية ---
+# --- حلقة التشغيل الرئيسية (الحماية القصوى من الانهيار) ---
 def run_joiner():
     os.system("clear")
     print(f"Logged in as {username}#{discriminator} ({userid}).")
-    maintain_session(usertoken)
+    
+    # 🔑 الحماية القصوى: تضمن أن البرنامج لا ينتهي أبدًا 🔑
+    while True:
+        try:
+            maintain_session(usertoken)
+        except Exception as e:
+            # يتم التقاط أي خطأ يهرب من maintain_session
+            print(f"[FATAL ERROR] The main session crashed entirely: {e}. Waiting 60s and re-launching...")
+            time.sleep(60)
 
 keep_alive()
 run_joiner()
