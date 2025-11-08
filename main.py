@@ -5,7 +5,7 @@ import time
 import requests
 import websocket
 import random
-from keep_alive import keep_alive 
+# from keep_alive import keep_alive  <== تم حذف هذا السطر لتجنب خطأ الاستيراد (ImportError)
 
 # --- المتغيرات الثابتة ---
 GUILD_ID = 961795359544328203
@@ -143,5 +143,4 @@ def run_joiner():
             print(f"[FATAL ERROR] The main session crashed entirely: {e}. Waiting 60s and re-launching...", flush=True) 
             time.sleep(60)
 
-# تم حذف استدعاء keep_alive() لتجنب تعارض المنافذ مع Gunicorn.
 run_joiner()
