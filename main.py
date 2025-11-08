@@ -48,8 +48,8 @@ def maintain_session(token):
         # 1. إنشاء اتصال WebSocket جديد
         ws = websocket.WebSocket()
         try:
-            # يجب تعيين مهلة الاستقبال (recv_timeout) للتحقق من الاتصال
-            ws.settimeout(10) # مهلة 10 ثواني لاستقبال الرسائل
+            # تعيين مهلة الاستقبال لمنع الحظر
+            ws.settimeout(10) 
             ws.connect('wss://gateway.discord.gg/?v=9&encoding=json')
         except Exception as e:
             print(f"[ERROR] Failed to connect WebSocket: {e}. Retrying in 10s...", flush=True) 
@@ -113,15 +113,12 @@ def maintain_session(token):
                     STATUS_UPDATE_INTERVAL = random.randint(300, 900) 
                     print(f"Next random update scheduled in {STATUS_UPDATE_INTERVAL} seconds.", flush=True) 
 
-                # 6.3. محاولة استقبال رسائل (لتجنب تراكمها وتجنب الخطأ)
+                # 6.3. محاولة استقبال رسائل (لحل مشكلة recv_ex)
                 try:
-                    # استقبال رسالة وإذا لم تكن هناك رسالة ينتقل إلى exception
                     ws.recv() 
                 except websocket.timeout:
-                    # هذا هو السلوك الطبيعي إذا لم تكن هناك رسالة، ننتقل للخطوة التالية
                     pass
                 except Exception as e:
-                    # التقاط أي خطأ آخر في الاستقبال
                     print(f"[ERROR] Recv error: {e}", flush=True) 
 
                 # 6.4. الانتظار حتى الموعد التالي لـ Heartbeat
