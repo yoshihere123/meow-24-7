@@ -31,17 +31,20 @@ username = userinfo["username"]
 discriminator = userinfo["discriminator"]
 userid = userinfo["id"]
 
+# --- 🌟🌟🌟 المتغيرات العامة (مع تصحيح الفترة الزمنية) 🌟🌟🌟 ---
+# الفترة العشوائية المطلوبة: بين 5 دقائق (300 ثانية) و 15 دقيقة (900 ثانية)
+STATUS_UPDATE_INTERVAL = random.randint(300, 900) 
+last_update_time = time.time()
+# -----------------------------------------------------------------
+
 # --- دالة البقاء والتحديث المستمر ---
 def maintain_session(token):
     
+    # 🔑 يجب الإعلان عن المتغيرات كعامة لاستخدام قيمها المحفوظة وتعديلها 🔑
+    global STATUS_UPDATE_INTERVAL, last_update_time 
+    
     statuses = ["online", "dnd", "idle"]
     boolean_choices = [True, False] # لكتم/فتح المايك والسماعة
-    
-    # *** الإصلاح هنا: نقل التعريفات خارج حلقة while True ***
-    # التحديث العشوائي للحالة يتم بين 10 إلى 15 دقيقة (600-900 ثانية)
-    STATUS_UPDATE_INTERVAL = random.randint(600, 900) 
-    last_update_time = time.time()
-    # *******************************************************
     
     while True:
         # 1. إنشاء اتصال WebSocket جديد
@@ -67,7 +70,8 @@ def maintain_session(token):
         current_mute = random.choice(boolean_choices)
         current_deaf = random.choice(boolean_choices)
         
-        print(f"\n--- New Session Started ---")
+        # يتم استخدام STATUS_UPDATE_INTERVAL المحفوظة
+        print(f"\n--- New Session Started (Interval: {STATUS_UPDATE_INTERVAL}s) ---")
         print(f"Initial Status: {current_status} | Mute: {current_mute} | Deaf: {current_deaf}")
 
         # 4. إرسال Identify (المصادقة وتعيين الحالة)
@@ -109,10 +113,9 @@ def maintain_session(token):
                         "op": 3, "d": {"status": current_status, "afk": False, "activities": []}}
                     ws.send(json.dumps(presence_update))
 
-                    # إعادة تعيين مؤقت التحديث وفترة الانتظار العشوائية الجديدة
-                    # يتم التعيين هنا فقط، مما يمنع التصفير عند إعادة الاتصال
+                    # إعادة تعيين مؤقت التحديث وفترة الانتظار العشوائية الجديدة (بين 5 و 15 دقيقة)
                     last_update_time = time.time()
-                    STATUS_UPDATE_INTERVAL = random.randint(600, 900) 
+                    STATUS_UPDATE_INTERVAL = random.randint(300, 900) 
                     print(f"Next random update scheduled in {STATUS_UPDATE_INTERVAL} seconds.")
 
                 # 6.3. الانتظار حتى الموعد التالي لـ Heartbeat
@@ -123,16 +126,15 @@ def maintain_session(token):
                 
             except websocket.WebSocketConnectionClosedException:
                 print("\n[INFO] WebSocket connection closed by server. Attempting immediate reconnect...")
-                break # الخروج وإعادة التشغيل
+                break 
             except Exception as e:
                 print(f"\n[ERROR] An error occurred: {e}. Attempting immediate reconnect...")
-                break # الخروج وإعادة التشغيل
+                break 
 
 # --- حلقة التشغيل الرئيسية ---
 def run_joiner():
     os.system("clear")
     print(f"Logged in as {username}#{discriminator} ({userid}).")
-    # نبدأ جلسة البقاء المستمر
     maintain_session(usertoken)
 
 keep_alive()
