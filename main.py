@@ -14,7 +14,7 @@ CHANNEL_ID = 1428594267189678080
 # --- 1. جلب التوكن والتحقق منه وتعريف متغيرات المستخدم ---
 usertoken = os.getenv("TOKEN")
 if not usertoken:
-    print("[ERROR] Please add a token inside Secrets.")
+    print("[ERROR] Please add a token inside Secrets.", flush=True) 
     sys.exit()
 
 headers = {"Authorization": usertoken, "Content-Type": "application/json"}
@@ -22,7 +22,7 @@ headers = {"Authorization": usertoken, "Content-Type": "application/json"}
 # التحقق من صلاحية التوكن
 validate = requests.get('https://canary.discordapp.com/api/v9/users/@me', headers=headers)
 if validate.status_code != 200:
-    print("[ERROR] Your token might be invalid. Please check it again.")
+    print("[ERROR] Your token might be invalid. Please check it again.", flush=True) 
     sys.exit()
 
 # جلب معلومات المستخدم وتعريف المتغيرات المطلوبة في run_joiner
@@ -31,7 +31,7 @@ username = userinfo["username"]
 discriminator = userinfo["discriminator"]
 userid = userinfo["id"]
 
-# --- 🌟 المتغيرات العامة (العدادات المحفوظة) 🌟 ---
+# --- المتغيرات العامة (العدادات المحفوظة) ---
 # الفترة العشوائية المطلوبة: بين 5 دقائق (300 ثانية) و 15 دقيقة (900 ثانية)
 STATUS_UPDATE_INTERVAL = random.randint(300, 900) 
 last_update_time = time.time()
@@ -40,7 +40,7 @@ last_update_time = time.time()
 # --- دالة البقاء والتحديث المستمر ---
 def maintain_session(token):
     
-    # 🔑 الإعلان عن المتغيرات كعامة لحفظ المؤقت 🔑
+    # الإعلان عن المتغيرات كعامة لحفظ المؤقت
     global STATUS_UPDATE_INTERVAL, last_update_time 
     
     statuses = ["online", "dnd", "idle"]
@@ -52,7 +52,7 @@ def maintain_session(token):
         try:
             ws.connect('wss://gateway.discord.gg/?v=9&encoding=json')
         except Exception as e:
-            print(f"[ERROR] Failed to connect WebSocket: {e}. Retrying in 10s...")
+            print(f"[ERROR] Failed to connect WebSocket: {e}. Retrying in 10s...", flush=True) 
             time.sleep(10)
             continue
 
@@ -62,7 +62,7 @@ def maintain_session(token):
             heartbeat_interval_ms = start['d']['heartbeat_interval'] 
             heartbeat_interval_s = heartbeat_interval_ms / 1000 
         except Exception:
-            print("[ERROR] Failed to receive Hello or calculate Heartbeat. Restarting connection.")
+            print("[ERROR] Failed to receive Hello or calculate Heartbeat. Restarting connection.", flush=True) 
             continue
             
         # 3. اختيار الحالة الأولية
@@ -70,8 +70,8 @@ def maintain_session(token):
         current_mute = random.choice(boolean_choices)
         current_deaf = random.choice(boolean_choices)
         
-        print(f"\n--- New Session Started (Interval: {STATUS_UPDATE_INTERVAL}s) ---")
-        print(f"Initial Status: {current_status} | Mute: {current_mute} | Deaf: {current_deaf}")
+        print(f"\n--- New Session Started (Interval: {STATUS_UPDATE_INTERVAL}s) ---", flush=True) 
+        print(f"Initial Status: {current_status} | Mute: {current_mute} | Deaf: {current_deaf}", flush=True) 
 
         # 4. إرسال Identify (المصادقة وتعيين الحالة)
         auth = {
@@ -99,7 +99,7 @@ def maintain_session(token):
                     current_mute = random.choice(boolean_choices)
                     current_deaf = random.choice(boolean_choices)
                     
-                    print(f"[UPDATE] Changing state. New Status: {current_status} | Mute: {current_mute} | Deaf: {current_deaf}")
+                    print(f"[UPDATE] Changing state. New Status: {current_status} | Mute: {current_mute} | Deaf: {current_deaf}", flush=True) 
 
                     # إرسال Voice State Update لتحديث المايك والسماعة
                     vc_update = {
@@ -115,7 +115,7 @@ def maintain_session(token):
                     # إعادة تعيين مؤقت التحديث وفترة الانتظار العشوائية الجديدة (بين 5 و 15 دقيقة)
                     last_update_time = time.time()
                     STATUS_UPDATE_INTERVAL = random.randint(300, 900) 
-                    print(f"Next random update scheduled in {STATUS_UPDATE_INTERVAL} seconds.")
+                    print(f"Next random update scheduled in {STATUS_UPDATE_INTERVAL} seconds.", flush=True) 
 
                 # 6.3. الانتظار حتى الموعد التالي لـ Heartbeat
                 time.sleep(heartbeat_interval_s)
@@ -124,25 +124,25 @@ def maintain_session(token):
                 ws.recv_ex() 
                 
             except websocket.WebSocketConnectionClosedException:
-                print("\n[INFO] WebSocket connection closed by server. Attempting immediate reconnect...")
+                print("\n[INFO] WebSocket connection closed by server. Attempting immediate reconnect...", flush=True) 
                 break 
             except Exception as e:
                 # التقاط أي خطأ داخل حلقة الاتصال والبدء من جديد
-                print(f"\n[ERROR] Inner connection loop failed: {e}. Retrying connection...")
+                print(f"\n[ERROR] Inner connection loop failed: {e}. Retrying connection...", flush=True) 
                 break 
 
 # --- حلقة التشغيل الرئيسية (الحماية القصوى من الانهيار) ---
 def run_joiner():
     os.system("clear")
-    print(f"Logged in as {username}#{discriminator} ({userid}).")
+    print(f"Logged in as {username}#{discriminator} ({userid}).", flush=True) 
     
-    # 🔑 الحماية القصوى: تضمن أن البرنامج لا ينتهي أبدًا 🔑
+    # الحماية القصوى: تضمن أن البرنامج لا ينتهي أبدًا 
     while True:
         try:
             maintain_session(usertoken)
         except Exception as e:
             # يتم التقاط أي خطأ يهرب من maintain_session
-            print(f"[FATAL ERROR] The main session crashed entirely: {e}. Waiting 60s and re-launching...")
+            print(f"[FATAL ERROR] The main session crashed entirely: {e}. Waiting 60s and re-launching...", flush=True) 
             time.sleep(60)
 
 keep_alive()
